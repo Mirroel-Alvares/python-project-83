@@ -1,0 +1,15 @@
+<div>Имя = {{ user.name }}</div>
+<div>Email = {{ user.email }}</div>
+
+<p><a href="{{ url_for('users_edit', id=user.id) }}">Редактировать пользователя</a></p>
+
+<form action="{{ url_for('users_delete', id=user.id) }}" method="post" style="display:inline;">
+    <button type="submit" onclick="return confirm('Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.');">Удалить пользователя</button>
+</form>
+<p><a href="/users">Назад к списку пользователей</a></p>
+
+<!--Пример иного оформления-->
+<!--<form action="{{ url_for('users_delete', id=user.id) }}" method="post"-->
+<!--onsubmit="return confirm('Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить.');">-->
+<!--<input type="submit" value="Удалить пользователя">-->
+<!--</form>-->
