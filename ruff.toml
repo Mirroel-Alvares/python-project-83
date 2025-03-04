@@ -6,7 +6,7 @@ indent-width = 4
 
 [lint]
 preview = true
-fixable = true
+fixable = []
 select = ["E", "F", "I", "N", "C90"]
 
 [format]

@@ -1,5 +1,8 @@
+# Стандартные библиотеки
 import os
-import psycopg2
+
+# Сторонние библиотеки
+from dotenv import load_dotenv
 from flask import (
     get_flashed_messages,
     flash,
@@ -9,8 +12,9 @@ from flask import (
     request,
     url_for
 )
-from dotenv import load_dotenv
+import psycopg2
 
+# Локальные модули
 from page_analyzer.user_repository import UserRepository
 
 
@@ -19,7 +23,7 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # оставить эту строку, только если буду работать с библиотекой SQLAlchemy, а не создавать свой репозиторий
 
 
 conn = psycopg2.connect(app.config['DATABASE_URL'])

@@ -12,7 +12,11 @@ class UserRepository:
 
     def get_by_term(self, search_term=''):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM users WHERE name ILIKE %s", (f'%{search_term}%',))
+            cur.execute(
+                "SELECT * FROM users WHERE name ILIKE %s", (
+                    f'%{search_term}%',
+                )
+            )
             return cur.fetchall()
 
     def find(self, id):
@@ -28,7 +32,6 @@ class UserRepository:
             id = self._update(user_data)
         return id
 
-
     def _update(self, user_data):
         with self.conn.cursor() as cur:
             cur.execute(
@@ -37,7 +40,6 @@ class UserRepository:
                 )
         self.conn.commit()
         return user_data['id']
-
 
     def _create(self, user_data):
         with self.conn.cursor() as cur:
@@ -48,7 +50,6 @@ class UserRepository:
             user_data['id'] = cur.fetchone()[0]
         self.conn.commit()
         return user_data['id']
-
 
     def destroy(self, id):
         with self.conn.cursor() as cur:
