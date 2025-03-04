@@ -4,13 +4,13 @@ import os
 # Сторонние библиотеки
 from dotenv import load_dotenv
 from flask import (
-    get_flashed_messages,
-    flash,
     Flask,
+    flash,
+    get_flashed_messages,
     redirect,
     render_template,
     request,
-    url_for
+    url_for,
 )
 import psycopg2
 
@@ -23,7 +23,8 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False # оставить эту строку, только если буду работать с библиотекой SQLAlchemy, а не создавать свой репозиторий
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# оставить строку выше, только если буду работать с библиотекой SQLAlchemy.
 
 
 conn = psycopg2.connect(app.config['DATABASE_URL'])
@@ -33,7 +34,7 @@ repo = UserRepository(conn)
 @app.route('/')
 def hello_world():
     return render_template(
-        'main/main.html'
+        'main.html'
     )
 
 
