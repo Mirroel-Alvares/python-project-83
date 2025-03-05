@@ -1,45 +1,31 @@
 {% extends "layout.html" %}
 
-{% block title %}Page Analyzer. Main page{% endblock %}
+{% block title %}Page Analyzer. Urls list{% endblock %}
 
 {% block content %}
 <div class="container-lg">
   <h1>Сайты</h1>
-  <table class="table table-striped table-hover table-bordered text-nowrap">
-  <thead>
-    <tr>
-      <th scope="col">ID</th>
-      <th scope="col">Имя</th>
-      <th scope="col">Последняя проверка</th>
-      <th scope="col">Код ответа</th>
-    </tr>
-  </thead>
-   <tbody>
-     {% for url in urls %}
-      <tr>
-        <th scope="row">{{ url.id }}</th>
-          <td><a href="{{ url_for('urls_show', id=urls.id) }}">{{ url.name }}</a></td>
-          <td>{{ url.last_check }}</td>
-          <td>{{ url.response_code }}</td>
-      </tr>
-     {% endfor %}
-  </tbody>
-</table>
-
-<table>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover table-bordered text-nowrap">
     <thead>
-        <tr>
-          <th>Имя</th>
-          <th>Email</th>
-        </tr>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Имя</th>
+        <th scope="col">Последняя проверка</th>
+        <th scope="col">Код ответа</th>
+      </tr>
     </thead>
     <tbody>
-        {% for user in users %}
-          <tr>
-            <td><a href="{{ url_for('users_show', id=user.id) }}">{{ user.name }}</td>
-            <td>{{ user.email }}</td>
-          </tr>
-        {% endfor %}
+      {% for url in urls %}
+        <tr>
+          <th scope="row">{{ url.id }}</th>
+          <td><a href="{{ url_for('urls_show', id=urls.id) }}">{{ url.name }}</a></td>
+          <td>{{ url.created_at }}</td>
+          <td>{{ url.response_code }}</td>
+        </tr>
+      {% endfor %}
     </tbody>
-</table>
+  </table>
+  </div>
+</div>
 {% endblock %}
