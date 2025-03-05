@@ -7,7 +7,7 @@ indent-width = 4
 [lint]
 preview = true
 fixable = []
-select = ["E", "F", "I", "N", "C90"]
+select = ["E", "F", "N", "C90"] #добавить тег "I", имипорты в конце
 
 [format]
 quote-style = "double"
