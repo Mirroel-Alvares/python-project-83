@@ -10,7 +10,8 @@ def normalize_url(url: str) -> str:
     url (str): The URL to normalize. May not contain protocol and 'www.'.
 
     Returns:
-    str: The normalized URL in 'https://www.example.com' format. If the URL is invalid, returns an empty string.
+    str: The normalized URL in 'https://www.example.com' format.
+    If the URL is invalid, returns an empty string.
 
     Example:
     normalize_url("example.com")
@@ -38,12 +39,14 @@ def is_valid_url(url: str) -> list:
         url (str): The URL string to be validated.
 
     Returns:
-        list: A list of error messages. If no errors are found, an empty list is returned.
+        list: A list of error messages. If no errors are found,
+        an empty list is returned.
 
     Errors:
         - "Invalid URL": If the URL does not match the standard format.
         - "URL is required": If the URL is an empty string.
-        - "URL exceeds 255 characters": If the length of the URL is greater than 255 characters.
+        - "URL exceeds 255 characters": If the length of the URL is
+           greater than 255 characters.
     """
     errors = []
     if not url:
