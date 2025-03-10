@@ -1,58 +1,70 @@
 from psycopg2.extras import RealDictCursor
 
 
-class UserRepository:
+class URLError(Exception):
+    pass
+
+
+class UrlRepository:
     def __init__(self, conn):
         self.conn = conn
 
-    def get_content(self):
+    def get_url_by_name(self, name):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM users")
-            return cur.fetchall()
-
-    def get_by_term(self, search_term=''):
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                "SELECT * FROM users WHERE name ILIKE %s", (
-                    f'%{search_term}%',
-                )
-            )
-            return cur.fetchall()
-
-    def find(self, id):
-        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("SELECT * FROM users WHERE id = %s", (id,))
+            cur.execute("SELECT * FROM urls WHERE name = %s", (name,))
             row = cur.fetchone()
             return dict(row) if row else None
 
-    def save(self, user_data):
-        if 'id' not in user_data:
-            id = self._create(user_data)
-        else:
-            id = self._update(user_data)
-        return id
+    def get_url_by_id(self, url_id):
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM urls WHERE id = %s", (url_id,))
+            row = cur.fetchone()
+            return dict(row) if row else None
 
-    def _update(self, user_data):
+    def save_url(self, normalized_url):
         with self.conn.cursor() as cur:
             cur.execute(
-                    "UPDATE users SET name = %s, email = %s WHERE id = %s",
-                    (user_data['name'], user_data['email'], user_data['id'])
-                )
-        self.conn.commit()
-        return user_data['id']
-
-    def _create(self, user_data):
-        with self.conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id",
-                (user_data['name'], user_data['email'])
+                "INSERT INTO urls (name) VALUES (%s) RETURNING id",
+                (normalized_url, )
             )
-            user_data['id'] = cur.fetchone()[0]
+            url_id = cur.fetchone()[0]
         self.conn.commit()
-        return user_data['id']
+        return url_id
 
-    def destroy(self, id):
+    def save_url_check(self, url_check_data):
         with self.conn.cursor() as cur:
-            cur.execute("DELETE FROM users WHERE id = %s", (id,))
+            cur.execute("""
+            INSERT INTO url_checks (
+                url_id,
+                response_code,
+                h1,
+                title,
+                description
+            )
+            VALUES (%s, %s, %s, %s, %s)
+            """, (
+                url_check_data['url_id'],
+                url_check_data['response_code'],
+                url_check_data['h1'],
+                url_check_data['title'],
+                url_check_data['description']
+            )
+        )
         self.conn.commit()
 
+    def get_url_checks(self, url_id):
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+            SELECT
+                id,
+                response_code,
+                h1,
+                title,
+                description,
+                created_at
+            FROM url_checks
+            WHERE url_id = %s
+            ORDER BY created_at DESC
+            """, (url_id,))
+            rows = cur.fetchall()
+            return rows

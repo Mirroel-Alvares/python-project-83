@@ -13,7 +13,7 @@
 
 <body class="d-flex flex-column min-vh-100 flex-shrink-0">
     <header class="flex-shrink-0">
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4 px-3">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark px-3">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/">Анализатор страниц</a>
                 <div class="collapse navbar-collapse" id="navbarCollapse">
@@ -27,17 +27,31 @@
         </nav>
     </header>
 
-<main class="flex-grow-1">
-  <div id="content">
-    {% block content %}{% endblock %}
-  </div>
-</main>
+{% with messges = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            {% if category == 'success' %}
+                <div class="alert alert-success" role="alert">{{ message }}</div>
+            {% elif category == 'info' %}
+                <div class="alert alert-info" role="alert">{{ message }}</div>
+            {% elif category == 'danger' %}
+                <div class="alert alert-danger" role="alert">{{ message }}</div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 
-<footer class="border-top py-3 mt-5 flex-shrink-0">
-    <div class="container-lg text-center">
-        <a href="https://github.com/Mirroel-Alvares" target="_blank" rel="noopener noreferrer">Alexey Kuznetsov on GitHub</a>
-    </div>
-</footer>
+    <main class="flex-grow-1 mt-3">
+        <div id="content">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="border-top py-3 mt-5 flex-shrink-0">
+        <div class="container-lg text-center">
+            <a href="https://github.com/Mirroel-Alvares" target="_blank" rel="noopener noreferrer">Alexey Kuznetsov on GitHub</a>
+        </div>
+    </footer>
 
 <script src="/docs/5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>

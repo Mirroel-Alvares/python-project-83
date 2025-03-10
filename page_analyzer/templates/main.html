@@ -7,12 +7,12 @@
   <div class="col-12 col-md-10 col-lg-8 mx-auto border rounded-3 bg-light p-5">
     <h1>Анализатор страниц</h1>
     <p>Бесплатно проверяйте сайты на SEO-пригодность</p>
-      <div class="input-group ">
-        <input type="text" class="form-control rounded-3" placeholder="https://www.example.com" aria-label="Ссылка на сайт">
-          <div class="input-group-append">
-            <button  type="submit" class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3" type="button">Проверить</button>
-          </div>
+    <form action="{{ url_for('url_post') }}" method="post" class="input-group">
+      <input type="text" name="url" class="form-control rounded-3" placeholder="https://www.example.com" aria-label="Ссылка на сайт" required>
+      <div class="input-group-append">
+        <button type="submit" class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3">Проверить</button>
       </div>
+    </form>
   </div>
 </div>
 {% endblock %}

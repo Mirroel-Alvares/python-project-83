@@ -31,7 +31,7 @@ def normalize_url(url: str) -> str:
     return normalized_url
 
 
-def is_valid_url(url: str) -> list:
+def validate(url: str) -> list:
     """
    Validates the given URL and checks for common issues.
 
