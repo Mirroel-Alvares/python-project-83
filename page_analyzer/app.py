@@ -83,3 +83,12 @@ def url_parse_check(id):
         flash(f'Ошибка при проверке страницы: {str(e)}', category="danger")
 
     return redirect(url_for("url_details", id=id))
+
+
+@app.route('/urls/')
+def urls_get():
+    urls_info = repo.get_all_urls()
+    return render_template(
+        'urls.html',
+        urls=urls_info,
+    )

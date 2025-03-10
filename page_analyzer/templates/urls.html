@@ -18,10 +18,10 @@
     <tbody>
       {% for url in urls %}
         <tr>
-          <th scope="row">{{ url.id }}</th>
-          <td><a href="{{ url_for('urls_show', id=urls.id) }}">{{ url.name }}</a></td>
-          <td>{{ url.created_at }}</td>
-          <td>{{ url.response_code }}</td>
+          <th scope="row">{{ url.url_id }}</th>
+          <td><a href="{{ url_for('url_details', id=id) }}">{{ url.name }}</a></td>
+          <td>{{ url.url_check_created_at }}</td>
+          <td>{{ url.last_check_response_code }}</td>
         </tr>
       {% endfor %}
     </tbody>

@@ -27,7 +27,7 @@ def normalize_url(url: str) -> str:
         netloc = 'www.' + parsed_url.netloc
     else:
         netloc = parsed_url.netloc
-    normalized_url = f'https://{netloc}{parsed_url.path}'
+    normalized_url = f'https://{netloc}'
     return normalized_url
 
 

@@ -52,7 +52,7 @@ class UrlRepository:
         )
         self.conn.commit()
 
-    def get_url_checks(self, url_id):
+    def  get_url_checks(self, url_id):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
             SELECT
@@ -66,5 +66,32 @@ class UrlRepository:
             WHERE url_id = %s
             ORDER BY created_at DESC
             """, (url_id,))
+            rows = cur.fetchall()
+            return rows
+
+
+    def get_all_urls(self):
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+            SELECT
+                u.id AS url_id,
+                u.name AS name,
+                uc.created_at AS url_check_created_at,
+                uc.response_code AS last_check_response_code
+            FROM
+                urls u
+            LEFT JOIN (
+                SELECT
+                    url_id,
+                    response_code,
+                    created_at,
+                    ROW_NUMBER() OVER (PARTITION BY url_id ORDER BY id DESC) AS rn
+                FROM
+                    url_checks
+            ) uc
+            ON u.id = uc.url_id AND uc.rn = 1
+            ORDER BY
+                u.id
+            """)
             rows = cur.fetchall()
             return rows
