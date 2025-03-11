@@ -1,10 +1,6 @@
 from psycopg2.extras import RealDictCursor
 
 
-class URLError(Exception):
-    pass
-
-
 class UrlRepository:
     def __init__(self, conn):
         self.conn = conn
@@ -36,7 +32,7 @@ class UrlRepository:
             cur.execute("""
             INSERT INTO url_checks (
                 url_id,
-                response_code,
+                status_code,
                 h1,
                 title,
                 description
@@ -44,7 +40,7 @@ class UrlRepository:
             VALUES (%s, %s, %s, %s, %s)
             """, (
                 url_check_data['url_id'],
-                url_check_data['response_code'],
+                url_check_data['status_code'],
                 url_check_data['h1'],
                 url_check_data['title'],
                 url_check_data['description']
@@ -52,12 +48,12 @@ class UrlRepository:
         )
         self.conn.commit()
 
-    def  get_url_checks(self, url_id):
+    def get_url_checks(self, url_id):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
             SELECT
                 id,
-                response_code,
+                status_code,
                 h1,
                 title,
                 description,
@@ -69,7 +65,6 @@ class UrlRepository:
             rows = cur.fetchall()
             return rows
 
-
     def get_all_urls(self):
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("""
@@ -77,15 +72,17 @@ class UrlRepository:
                 u.id AS url_id,
                 u.name AS name,
                 uc.created_at AS url_check_created_at,
-                uc.response_code AS last_check_response_code
+                uc.status_code AS last_check_status_code
             FROM
                 urls u
             LEFT JOIN (
                 SELECT
                     url_id,
-                    response_code,
+                    status_code,
                     created_at,
-                    ROW_NUMBER() OVER (PARTITION BY url_id ORDER BY id DESC) AS rn
+                    ROW_NUMBER() OVER (
+                        PARTITION BY url_id ORDER BY id DESC
+                    ) AS rn
                 FROM
                     url_checks
             ) uc

@@ -6,7 +6,7 @@
 <div class="container-lg">
   <h1>Сайты</h1>
   <div class="table-responsive">
-    <table class="table table-striped table-hover table-bordered text-nowrap">
+    <table class="table table-striped table-hover table-bordered text-nowrap" data-test="urls">
     <thead>
       <tr>
         <th scope="col">ID</th>
@@ -19,9 +19,9 @@
       {% for url in urls %}
         <tr>
           <th scope="row">{{ url.url_id }}</th>
-          <td><a href="{{ url_for('url_details', id=id) }}">{{ url.name }}</a></td>
+          <td><a href="{{ url_for('url_details', id=url.url_id) }}">{{ url.name }}</a></td>
           <td>{{ url.url_check_created_at }}</td>
-          <td>{{ url.last_check_response_code }}</td>
+          <td>{{ url.last_check_status_code }}</td>
         </tr>
       {% endfor %}
     </tbody>

@@ -23,10 +23,7 @@ def normalize_url(url: str) -> str:
     parsed_url = urlparse(url)
     if not parsed_url.scheme:
         url = 'https://' + url
-    if not parsed_url.netloc.startswith('www.'):
-        netloc = 'www.' + parsed_url.netloc
-    else:
-        netloc = parsed_url.netloc
+    netloc = parsed_url.netloc
     normalized_url = f'https://{netloc}'
     return normalized_url
 

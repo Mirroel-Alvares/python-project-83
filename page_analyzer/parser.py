@@ -4,8 +4,8 @@ from bs4 import BeautifulSoup
 
 def extract_page_info(url):
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Проверяем, что запрос успешен
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
         h1 = soup.h1.text if soup.h1 else ''
@@ -14,7 +14,7 @@ def extract_page_info(url):
         description = description_tag['content'] if description_tag else ''
 
         return {
-            'response_code': response.status_code,
+            'status_code': response.status_code,
             'h1': h1,
             'title': title,
             'description': description,

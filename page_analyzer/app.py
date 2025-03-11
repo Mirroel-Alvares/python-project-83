@@ -75,8 +75,11 @@ def url_details(id):
 @app.post('/urls/<id>/checks')
 def url_parse_check(id):
     try:
-        url_name = repo.get_url_by_id(id)['name']
+        url_info = repo.get_url_by_id(id)
+        url_name = url_info['name']
+        url_id = url_info['id']
         url_check_data = extract_page_info(url_name)
+        url_check_data['url_id'] = url_id
         repo.save_url_check(url_check_data)
         flash('Страница успешно проверена', category="success")
     except Exception as e:
