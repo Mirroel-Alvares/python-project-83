@@ -32,10 +32,9 @@ dependencies = [
     "validators>=0.34.0",
 ]
 
-[tool.uv]
 [dependency-groups]
-dev-dependencies = [
-    "ruff>=0.9.3",
+dev = [
+    "ruff>=0.8.4",
 ]
 
 [tool.hatch.build.targets.sdist]
