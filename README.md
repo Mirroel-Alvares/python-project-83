@@ -51,7 +51,7 @@ It allows checking website availability and analyzing **SEO data**.
 ---
 
 ## Requirements
-- Python 3.13+
+- Python 3.10+
 - PostgreSQL
 - Flask, Requests, BeautifulSoup
 - UV (dependency management)
