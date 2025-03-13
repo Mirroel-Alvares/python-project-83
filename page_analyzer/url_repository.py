@@ -60,7 +60,7 @@ class UrlRepository:
                 created_at
             FROM url_checks
             WHERE url_id = %s
-            ORDER BY created_at DESC
+            ORDER BY id DESC
             """, (url_id,))
             rows = cur.fetchall()
             return rows
@@ -88,7 +88,7 @@ class UrlRepository:
             ) uc
             ON u.id = uc.url_id AND uc.rn = 1
             ORDER BY
-                u.id
+                u.id DESC
             """)
             rows = cur.fetchall()
             return rows
