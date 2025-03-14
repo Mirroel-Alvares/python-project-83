@@ -4,7 +4,7 @@ authors = [
 ]
 repository = "https://github.com/Mirroel-Alvares/python-project-83/tree/main"
 name = "hexlet-code"
-version = "0.3.4"
+version = "0.4.0"
 description = "Page analyzer"
 readme = "README.md"
 requires-python = ">=3.10"
