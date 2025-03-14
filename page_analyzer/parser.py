@@ -7,12 +7,16 @@ def extract_page_info(url):
     Extracts information from a web page given its URL.
 
     :param url: The URL of the web page to extract information from.
-    :return: A dictionary containing the HTTP status code, H1 text, title text, and meta description of the page.
+    :return: A dictionary containing the HTTP status code, H1 text, title text,
+            and meta description of the page.
              The dictionary has the following keys:
              - 'status_code': The HTTP status code of the response.
-             - 'h1': The text of the first H1 tag on the page, or an empty string if not found.
-             - 'title': The text of the title tag, or an empty string if not found.
-             - 'description': The content of the meta description tag, or an empty string if not found.
+             - 'h1': The text of the first H1 tag on the page,
+                or an empty string if not found.
+             - 'title': The text of the title tag,
+                or an empty string if not found.
+             - 'description': The content of the meta description tag,
+                or an empty string if not found.
     :raises Exception: If there is an error while making the request to the URL.
     """
     try:

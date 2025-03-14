@@ -29,28 +29,21 @@ def normalize_url(url: str) -> str:
     return normalized_url
 
 
-def validate(url: str) -> list:
+def validate(url: str):
     """
-   Validates the given URL and checks for common issues.
+    Validates a given URL.
 
-    Args:
-        url (str): The URL string to be validated.
-
-    Returns:
-        list: A list of error messages. If no errors are found,
-        an empty list is returned.
-
-    Errors:
-        - "Invalid URL": If the URL does not match the standard format.
-        - "URL is required": If the URL is an empty string.
-        - "URL exceeds 255 characters": If the length of the URL is
-           greater than 255 characters.
+    :param url: The URL string to validate.
+    :return: A string containing an error message if validation fails;
+            an empty string if the URL is valid.
+             Possible error messages include:
+             - "URL exceeds 255 characters" if the URL length
+                is greater than 255.
+             - "Invalid URL" if the URL format is incorrect.
     """
-    errors = []
-    if not url:
-        errors.append("URL обязателен")
+    error = ""
     if len(url) > 255:
-        errors.append("URL превышает 255 символов")
+        error = "URL превышает 255 символов"
     if not validators.url(url):
-        errors.append("Некорректный URL")
-    return errors
+        error = "Некорректный URL"
+    return error

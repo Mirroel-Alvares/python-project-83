@@ -50,15 +50,16 @@ def url_post():
     """
     Handles POST requests to add a new URL.
 
-    :return: Redirects to the main page with a message about the result of the operation.
+    :return: Redirects to the main page with
+    a message about the result of the operation.
     """
     url = request.form.get('url')
-    normalized_url = normalize_url(url)
-    errors = validate(normalized_url)
+    errors = validate(url)
     if errors:
         return flash_and_redirect(
-            'Некорректный URL', 'danger', 'main', url=url
+            f'{errors}', 'danger', 'main', url=url
         ), 422
+    normalized_url = normalize_url(url)
 
     existing_url = repo.get_url_by_name(normalized_url)
 
@@ -104,7 +105,8 @@ def url_parse_check(id):
     Handles POST requests to check the specified URL.
 
     :param id: The ID of the URL to check.
-    :return: Redirects to the URL details page with a message about the result of the check.
+    :return: Redirects to the URL details page with
+    a message about the result of the check.
     """
     try:
         url_info = repo.get_url_by_id(id)
