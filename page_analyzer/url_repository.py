@@ -1,5 +1,4 @@
 from datetime import datetime
-import logging
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from psycopg2 import Error as Psycopg2Error
@@ -55,11 +54,7 @@ class UrlRepository:
             if fetch_all:
                 return cursor.fetchall()
             return None
-        except Psycopg2Error as e:
-            logging.error(
-                f"Ошибка при выполнении запроса: "
-                f"{str(e)}. Запрос: {query}, Параметры: {params}"
-            )
+        except Psycopg2Error:
             raise
         finally:
             if cursor:
@@ -67,7 +62,7 @@ class UrlRepository:
 
     def get_url_by_name(self, name):
         """
-          Gets a URL by its name.
+        Gets a URL by its name.
         """
         query = "SELECT * FROM urls WHERE name = %s"
         return self._execute_query(
@@ -100,8 +95,7 @@ class UrlRepository:
             if result:
                 cursor.connection.commit()
                 return result[0]
-        except Psycopg2Error as e:
-            logging.error(f"Ошибка при сохранении URL: {str(e)}")
+        except Psycopg2Error:
             if cursor and cursor.connection:
                 cursor.connection.rollback()
         finally:
@@ -131,8 +125,7 @@ class UrlRepository:
             cursor = self.connection_pool.get_cursor()
             cursor.execute(query, params)
             cursor.connection.commit()
-        except Psycopg2Error as e:
-            logging.error(f"Ошибка при сохранении проверки URL: {str(e)}")
+        except Psycopg2Error:
             if cursor and cursor.connection:
                 cursor.connection.rollback()
         finally:
