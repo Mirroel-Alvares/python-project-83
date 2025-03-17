@@ -1,79 +1,86 @@
 from datetime import datetime
-from psycopg2 import pool
-from psycopg2.extras import RealDictCursor
+import psycopg2
 from psycopg2 import Error as Psycopg2Error
-from contextlib import contextmanager
+from psycopg2.extras import RealDictCursor
 
 
-class DatabaseConnectionPool:
-    def __init__(self, dsn, minconn=1, maxconn=10):
+class DatabaseConnection:
+    def __init__(self, dsn, cursor_factory=None, autocommit=True):
+        """
+        Initializes a database connection.
+
+        :param dsn: Database connection string.
+        :param cursor_factory: Cursor factory (e.g., RealDictCursor).
+        :param autocommit: If True, automatically commits transactions.
+        """
         self.dsn = dsn
-        self.minconn = minconn
-        self.maxconn = maxconn
-        self.connection_pool = pool.SimpleConnectionPool(
-            minconn, maxconn, dsn
-        )
+        self.cursor_factory = cursor_factory
+        self.autocommit = autocommit
+        self.conn = None
 
-    def get_cursor(self, cursor_factory=None):
+    def __enter__(self):
         """
-        Returns a cursor with the specified cursor factory.
+        Opens a connection and returns a cursor.
         """
-        conn = self.connection_pool.getconn()
-        return conn.cursor(cursor_factory=cursor_factory)
+        try:
+            self.conn = psycopg2.connect(self.dsn)
+            self.conn.autocommit = self.autocommit
+            if self.cursor_factory:
+                return self.conn.cursor(cursor_factory=self.cursor_factory)
+            return self.conn.cursor()
+        except Psycopg2Error as e:
+            self._handle_error(e)
+            raise
 
-    def put_cursor(self, cursor):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         """
-        Returns the connection to the pool.
+        Closes the connection and handles exceptions.
         """
-        if cursor and cursor.connection:
-            self.connection_pool.putconn(cursor.connection)
+        if self.conn:
+            if exc_type is not None:  # If an exception occurred
+                self.conn.rollback()  # Rollback the transaction
+            else:
+                self.conn.commit()  # Commit the transaction if no errors
+            self.conn.close()
+            self.conn = None
+
+    def _handle_error(self, error):
+        """
+        Handles database-related errors.
+        """
+        print(f"Database error occurred: {error}")
 
     def check_connection(self):
         """
-        Checks if the connection pool is healthy.
+        Checks if the database connection is active.
         """
         try:
-            conn = self.connection_pool.getconn()
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")  # Простой запрос для проверки соединения
-            cursor.close()
-            self.connection_pool.putconn(conn)
+            with self as cursor:
+                cursor.execute("SELECT 1")  # Simple query to test the connection
             return True
         except Psycopg2Error:
             return False
 
-    def close_all_connections(self):
+    def reconnect(self):
         """
-        Closes all connections in the pool.
+        Reconnects to the database.
         """
-        self.connection_pool.closeall()
-
-    @contextmanager
-    def cursor(self, cursor_factory=None):
-        """
-        A context manager for handling database cursors.
-        """
-        conn = None
-        cursor = None
-        try:
-            conn = self.connection_pool.getconn()
-            cursor = conn.cursor(cursor_factory=cursor_factory)
-            yield cursor
-        except Psycopg2Error as e:
-            if conn:
-                conn.rollback()
-            raise e
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                self.connection_pool.putconn(conn)
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+        return self.__enter__()
 
 
 class UrlRepository:
-    def __init__(self, connection_pool):
-        self.connection_pool = connection_pool
-        if not self.connection_pool.check_connection():
+    def __init__(self, dsn):
+        """
+        Initializes the URL repository.
+
+        :param dsn: Database connection string.
+        """
+        self.dsn = dsn
+        self.connection = DatabaseConnection(dsn)
+        if not self.connection.check_connection():
             raise Psycopg2Error("Database connection is not available")
 
     def _execute_query(
@@ -87,10 +94,15 @@ class UrlRepository:
         """
         A general-purpose method for executing SQL queries.
         Returns one row, all rows, or None depending on the parameters.
+
+        :param query: SQL query to execute.
+        :param params: Parameters for the query.
+        :param fetch_one: If True, fetches a single row.
+        :param fetch_all: If True, fetches all rows.
+        :param cursor_factory: Cursor factory (e.g., RealDictCursor).
+        :return: A dictionary, list of dictionaries, or None.
         """
-        with self.connection_pool.cursor(
-                cursor_factory=cursor_factory
-        ) as cursor:
+        with DatabaseConnection(self.dsn, cursor_factory=cursor_factory) as cursor:
             cursor.execute(query, params)
             if fetch_one:
                 row = cursor.fetchone()
@@ -101,7 +113,10 @@ class UrlRepository:
 
     def get_url_by_name(self, name):
         """
-        Gets a URL by its name.
+        Retrieves a URL by its name.
+
+        :param name: The name of the URL.
+        :return: A dictionary containing the URL data or None if not found.
         """
         query = "SELECT * FROM urls WHERE name = %s"
         return self._execute_query(
@@ -110,7 +125,10 @@ class UrlRepository:
 
     def get_url_by_id(self, url_id):
         """
-        Gets a URL by its ID.
+        Retrieves a URL by its ID.
+
+        :param url_id: The ID of the URL.
+        :return: A dictionary containing the URL data or None if not found.
         """
         query = "SELECT * FROM urls WHERE id = %s"
         return self._execute_query(
@@ -120,6 +138,9 @@ class UrlRepository:
     def save_url(self, normalized_url):
         """
         Saves a URL to the database and returns its ID.
+
+        :param normalized_url: The normalized URL to save.
+        :return: The ID of the saved URL or None if the operation failed.
         """
         query = """
             INSERT INTO urls (name, created_at)
@@ -127,7 +148,7 @@ class UrlRepository:
             RETURNING id
         """
         params = (normalized_url, datetime.now())
-        with self.connection_pool.cursor() as cursor:
+        with DatabaseConnection(self.dsn) as cursor:
             cursor.execute(query, params)
             result = cursor.fetchone()
             if result:
@@ -137,7 +158,9 @@ class UrlRepository:
 
     def save_url_check(self, url_check_data):
         """
-        Saves the URL check result to the database.
+        Saves the result of a URL check to the database.
+
+        :param url_check_data: A dictionary containing URL check data.
         """
         query = """
             INSERT INTO url_checks (
@@ -153,13 +176,16 @@ class UrlRepository:
             url_check_data["description"],
             datetime.now(),
         )
-        with self.connection_pool.cursor() as cursor:
+        with DatabaseConnection(self.dsn) as cursor:
             cursor.execute(query, params)
             cursor.connection.commit()
 
     def get_url_checks(self, url_id):
         """
-        Gets all checks for the specified URL.
+        Retrieves all checks for a specific URL.
+
+        :param url_id: The ID of the URL.
+        :return: A list of dictionaries containing URL check data.
         """
         query = """
             SELECT
@@ -174,7 +200,9 @@ class UrlRepository:
 
     def get_all_urls(self):
         """
-        Gets all URLs with last check information.
+        Retrieves all URLs with information about their last check.
+
+        :return: A list of dictionaries containing URL data and last check information.
         """
         query = """
             SELECT

@@ -13,7 +13,6 @@ from flask import (
 from page_analyzer.parser import extract_page_info
 from page_analyzer.url_repository import UrlRepository
 from page_analyzer.utils import normalize_url, validate
-from page_analyzer.url_repository import DatabaseConnectionPool
 
 
 load_dotenv()
@@ -22,8 +21,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
 
-connection_pool = DatabaseConnectionPool(app.config['DATABASE_URL'])
-repo = UrlRepository(connection_pool)
+repo = UrlRepository(app.config['DATABASE_URL'])
 
 
 def flash_and_redirect(message, category, endpoint, **kwargs):
