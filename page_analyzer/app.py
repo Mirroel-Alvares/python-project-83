@@ -115,7 +115,7 @@ def url_parse_check(id):
         repo.save_url_check(url_check_data)
         flash('Страница успешно проверена', category="success")
     except Exception:
-        flash(f'Произошла ошибка при проверке', category="danger")
+        flash('Произошла ошибка при проверке', category="danger")
 
     return redirect(url_for("url_details", id=id))
 
