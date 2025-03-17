@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 import psycopg2
 from psycopg2 import Error as Psycopg2Error
@@ -37,10 +38,10 @@ class DatabaseConnection:
         Closes the connection and handles exceptions.
         """
         if self.conn:
-            if exc_type is not None:  # If an exception occurred
-                self.conn.rollback()  # Rollback the transaction
+            if exc_type is not None:
+                self.conn.rollback()
             else:
-                self.conn.commit()  # Commit the transaction if no errors
+                self.conn.commit()
             self.conn.close()
             self.conn = None
 
@@ -56,7 +57,7 @@ class DatabaseConnection:
         """
         try:
             with self as cursor:
-                cursor.execute("SELECT 1")  # Simple query to test the connection
+                cursor.execute("SELECT 1")
             return True
         except Psycopg2Error:
             return False
@@ -73,15 +74,20 @@ class DatabaseConnection:
 
 class UrlRepository:
     def __init__(self, dsn):
-        """
-        Initializes the URL repository.
-
-        :param dsn: Database connection string.
-        """
         self.dsn = dsn
-        self.connection = DatabaseConnection(dsn)
-        if not self.connection.check_connection():
-            raise Psycopg2Error("Database connection is not available")
+        self.connection = self._connect_with_retries()
+
+    def _connect_with_retries(self, max_retries=5, delay=2):
+        retries = 0
+        while retries < max_retries:
+            try:
+                conn = psycopg2.connect(self.dsn)
+                return conn
+            except Psycopg2Error as e:
+                print(f"Connection attempt {retries + 1} failed: {e}")
+                retries += 1
+                time.sleep(delay)
+        raise Psycopg2Error("Database connection is not available")
 
     def _execute_query(
             self,
@@ -102,7 +108,10 @@ class UrlRepository:
         :param cursor_factory: Cursor factory (e.g., RealDictCursor).
         :return: A dictionary, list of dictionaries, or None.
         """
-        with DatabaseConnection(self.dsn, cursor_factory=cursor_factory) as cursor:
+        with DatabaseConnection(
+                self.dsn,
+                cursor_factory=cursor_factory
+        ) as cursor:
             cursor.execute(query, params)
             if fetch_one:
                 row = cursor.fetchone()
@@ -202,7 +211,8 @@ class UrlRepository:
         """
         Retrieves all URLs with information about their last check.
 
-        :return: A list of dictionaries containing URL data and last check information.
+        :return: A list of dictionaries containing URL data
+        and last check information.
         """
         query = """
             SELECT
