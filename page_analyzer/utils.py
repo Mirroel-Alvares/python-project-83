@@ -22,11 +22,9 @@ def normalize_url(url: str) -> str:
     'https://www.example.com/path'
     """
     parsed_url = urlparse(url)
-    if not parsed_url.scheme:
-        url = 'https://' + url
-    netloc = parsed_url.netloc
-    normalized_url = f'https://{netloc}'
-    return normalized_url
+    scheme = parsed_url.scheme
+    hostname = parsed_url.netloc
+    return f"{scheme.lower()}://{hostname.lower()}"
 
 
 def validate(url: str):
