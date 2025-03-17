@@ -2,11 +2,14 @@ from datetime import datetime
 from psycopg2 import pool
 from psycopg2.extras import RealDictCursor
 from psycopg2 import Error as Psycopg2Error
+from contextlib import contextmanager
 
 
 class DatabaseConnectionPool:
     def __init__(self, dsn, minconn=1, maxconn=10):
         self.dsn = dsn
+        self.minconn = minconn
+        self.maxconn = maxconn
         self.connection_pool = pool.SimpleConnectionPool(
             minconn, maxconn, dsn
         )
@@ -25,10 +28,53 @@ class DatabaseConnectionPool:
         if cursor and cursor.connection:
             self.connection_pool.putconn(cursor.connection)
 
+    def check_connection(self):
+        """
+        Checks if the connection pool is healthy.
+        """
+        try:
+            conn = self.connection_pool.getconn()
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")  # Простой запрос для проверки соединения
+            cursor.close()
+            self.connection_pool.putconn(conn)
+            return True
+        except Psycopg2Error:
+            return False
+
+    def close_all_connections(self):
+        """
+        Closes all connections in the pool.
+        """
+        self.connection_pool.closeall()
+
+    @contextmanager
+    def cursor(self, cursor_factory=None):
+        """
+        A context manager for handling database cursors.
+        """
+        conn = None
+        cursor = None
+        try:
+            conn = self.connection_pool.getconn()
+            cursor = conn.cursor(cursor_factory=cursor_factory)
+            yield cursor
+        except Psycopg2Error as e:
+            if conn:
+                conn.rollback()
+            raise e
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                self.connection_pool.putconn(conn)
+
 
 class UrlRepository:
     def __init__(self, connection_pool):
         self.connection_pool = connection_pool
+        if not self.connection_pool.check_connection():
+            raise Psycopg2Error("Database connection is not available")
 
     def _execute_query(
             self,
@@ -42,11 +88,9 @@ class UrlRepository:
         A general-purpose method for executing SQL queries.
         Returns one row, all rows, or None depending on the parameters.
         """
-        cursor = None
-        try:
-            cursor = self.connection_pool.get_cursor(
+        with self.connection_pool.cursor(
                 cursor_factory=cursor_factory
-            )
+        ) as cursor:
             cursor.execute(query, params)
             if fetch_one:
                 row = cursor.fetchone()
@@ -54,11 +98,6 @@ class UrlRepository:
             if fetch_all:
                 return cursor.fetchall()
             return None
-        except Psycopg2Error:
-            raise
-        finally:
-            if cursor:
-                self.connection_pool.put_cursor(cursor)
 
     def get_url_by_name(self, name):
         """
@@ -88,20 +127,13 @@ class UrlRepository:
             RETURNING id
         """
         params = (normalized_url, datetime.now())
-        try:
-            cursor = self.connection_pool.get_cursor()
+        with self.connection_pool.cursor() as cursor:
             cursor.execute(query, params)
             result = cursor.fetchone()
             if result:
                 cursor.connection.commit()
                 return result[0]
-        except Psycopg2Error:
-            if cursor and cursor.connection:
-                cursor.connection.rollback()
-        finally:
-            if cursor:
-                self.connection_pool.put_cursor(cursor)
-        return None
+            return None
 
     def save_url_check(self, url_check_data):
         """
@@ -121,16 +153,9 @@ class UrlRepository:
             url_check_data["description"],
             datetime.now(),
         )
-        try:
-            cursor = self.connection_pool.get_cursor()
+        with self.connection_pool.cursor() as cursor:
             cursor.execute(query, params)
             cursor.connection.commit()
-        except Psycopg2Error:
-            if cursor and cursor.connection:
-                cursor.connection.rollback()
-        finally:
-            if cursor:
-                self.connection_pool.put_cursor(cursor)
 
     def get_url_checks(self, url_id):
         """
