@@ -43,7 +43,7 @@ def main():
     return render_template('main.html')
 
 
-@app.post('/')
+@app.post('/urls')
 def url_post():
     """
     Handles POST requests to add a new URL.
@@ -120,7 +120,7 @@ def url_parse_check(id):
     return redirect(url_for("url_details", id=id))
 
 
-@app.route('/urls/')
+@app.route('/urls')
 def urls_get():
     """
     Handles GET requests to retrieve a list of all URLs.
