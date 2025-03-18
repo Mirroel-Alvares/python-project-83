@@ -54,11 +54,9 @@ def url_post():
     url = request.form.get('url')
     errors = validate(url)
     if errors:
-        return flash_and_redirect(
-            f'{errors}', 'danger', 'main', url=url
-        ), 422
+        flash(errors, category='danger')
+        return render_template('main.html'), 422
     normalized_url = normalize_url(url)
-
     existing_url = repo.get_url_by_name(normalized_url)
 
     if existing_url:
